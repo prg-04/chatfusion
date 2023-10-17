@@ -18,16 +18,12 @@ const communitySchema = new mongoose.Schema({
       ref: "Thread",
     },
   ],
-  onboarded: {
-    type: Boolean,
-    default: false,
-  },
-  communities: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Community",
-    },
-  ],
+ members: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
+ ]
 });
 
 const Community = mongoose.models.Community || mongoose.model("Community", communitySchema);
