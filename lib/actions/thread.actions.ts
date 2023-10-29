@@ -150,9 +150,9 @@ export async function deleteThread(id: string, path: string): Promise<void> {
 }
 
 export async function fetchThreadById(threadId: string) {
-  connectToDB();
-
+  
   try {
+    connectToDB();
     const thread = await Thread.findById(threadId)
       .populate({
         path: "author",
@@ -198,9 +198,9 @@ export async function addCommentToThread(
   userId: string,
   path: string
 ) {
-  connectToDB();
-
+  
   try {
+    connectToDB();
     const originalThread = await Thread.findById(threadId);
 
     if (!originalThread) {
