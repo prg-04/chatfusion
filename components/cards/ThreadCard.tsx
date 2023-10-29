@@ -48,8 +48,8 @@ const ThreadCard = ({
               <Image
                 src={author.image}
                 alt="Profile-image"
-                fill
-                className="cursor-pointer rounded-full"
+                width={45}
+                height={45}                className="cursor-pointer rounded-full"
               />
             </Link>
             <div className="thread-card_bar" />

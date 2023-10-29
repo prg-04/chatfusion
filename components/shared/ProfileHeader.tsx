@@ -21,12 +21,14 @@ const ProfileHeader = ({
     <div className="flex w-full flex-col justify-start">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative h-20 w-20 object-cover">
+          <div className="relative h-20 w-20 object-cover border-red-800">
             <Image
               src={imgUrl}
               alt="Profile image"
-              fill
-              className="rounded-full object-cover shadow-2xl"
+              // fill
+              width={90}
+              height={90}
+              className="rounded-full  object-cover shadow-2xl"
             />
           </div>
 
