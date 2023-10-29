@@ -3,12 +3,24 @@
 import { FilterQuery, SortOrder } from "mongoose";
 import { revalidatePath } from "next/cache";
 
-// import Community from "./models/community.model";
-// import Thread from "../models/thread.model";
+import Community from "../models/community.model";
+import Thread from "../models/thread.model";
 import User from "../models/user.model";
 
 import { connectToDB } from "../mongoose";
-import Thread from "../models/thread.model";
+
+export async function fetchUser(userId: string) {
+  try {
+    connectToDB();
+
+    return await User.findOne({ id: userId }).populate({
+      path: "communities",
+      model: Community,
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+}
 
 interface Params {
   userId: string;
@@ -27,9 +39,9 @@ export async function updateUser({
   username,
   image,
 }: Params): Promise<void> {
-  connectToDB();
-
   try {
+    connectToDB();
+
     await User.findOneAndUpdate(
       { id: userId },
       {
@@ -39,7 +51,7 @@ export async function updateUser({
         image,
         onboarded: true,
       },
-      { upsert: true } // Update and insert = upsert
+      { upsert: true }
     );
 
     if (path === "/profile/edit") {
@@ -50,13 +62,34 @@ export async function updateUser({
   }
 }
 
-export async function fetchUser(userId: string) {
+export async function fetchUserPosts(userId: string) {
   try {
     connectToDB();
-
-    return await User.findOne({ id: userId });
-  } catch (error: any) {
-    throw new Error(`Failed to fetch user: ${error.message}`);
+   
+    const threads = await User.findOne({ id: userId }).populate({
+      path: "threads",
+      model: Thread,
+      populate: [
+        {
+          path: "community",
+          model: Community,
+          select: "name id image _id",
+        },
+        {
+          path: "children",
+          model: Thread,
+          populate: {
+            path: "author",
+            model: User,
+            select: "name image id",
+          },
+        },
+      ],
+    });
+    return threads;
+  } catch (error) {
+    console.error("Error fetching user threads:", error);
+    throw error;
   }
 }
 
@@ -76,14 +109,18 @@ export async function fetchUsers({
   try {
     connectToDB();
 
+    
     const skipAmount = (pageNumber - 1) * pageSize;
 
+   
     const regex = new RegExp(searchString, "i");
 
+    
     const query: FilterQuery<typeof User> = {
-      id: { $ne: userId.toLowerCase() },
+      id: { $ne: userId },
     };
 
+    
     if (searchString.trim() !== "") {
       query.$or = [
         { username: { $regex: regex } },
@@ -91,6 +128,7 @@ export async function fetchUsers({
       ];
     }
 
+    
     const sortOptions = { createdAt: sortBy };
 
     const usersQuery = User.find(query)
@@ -98,15 +136,18 @@ export async function fetchUsers({
       .skip(skipAmount)
       .limit(pageSize);
 
-    const totalUserCount = await User.countDocuments(query);
+    
+    const totalUsersCount = await User.countDocuments(query);
 
     const users = await usersQuery.exec();
 
-    const isNext = totalUserCount > skipAmount + users.length;
+    
+    const isNext = totalUsersCount > skipAmount + users.length;
 
     return { users, isNext };
-  } catch (error: any) {
-    throw new Error(`Failed to fetch users: ${error.message}`);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
   }
 }
 
@@ -114,10 +155,14 @@ export async function getActivity(userId: string) {
   try {
     connectToDB();
 
+    
     const userThreads = await Thread.find({ author: userId });
+
+    
     const childThreadIds = userThreads.reduce((acc, userThread) => {
       return acc.concat(userThread.children);
     }, []);
+
     const replies = await Thread.find({
       _id: { $in: childThreadIds },
       author: { $ne: userId },
@@ -126,8 +171,10 @@ export async function getActivity(userId: string) {
       model: User,
       select: "name image _id",
     });
+
     return replies;
-  } catch (error: any) {
-    throw new Error(`Failed to fetch activity: ${error.message}`);
+  } catch (error) {
+    console.error("Error fetching replies: ", error);
+    throw error;
   }
 }

@@ -30,9 +30,6 @@ ignoreBuildErrors: true,
         hostname: "utfs.io", // Add this line for the new hostname
       },
     ],
-    typescript: {
-      ignoreBuildErrors: true,
-    },
   },
 };
 

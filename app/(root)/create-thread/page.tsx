@@ -10,7 +10,7 @@ export default async function Page() {
 
     const userInfo = await fetchUser(user.id);
 
-  if (!userInfo?.onboarded === false) redirect("/onboarding");
+  if (userInfo?.onboarded === false) redirect("/onboarding");
   return (
     <>
       <h1 className="head-text">Create Thread</h1>
